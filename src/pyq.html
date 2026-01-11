@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PYQ SVG 生成器</title>
+  <style>
+    :root {
+      --ink: #1f1d1a;
+      --muted: #6b6761;
+      --cream: #fff7ef;
+      --sand: #f3e5d6;
+      --accent: #ff9b33;
+      --accent-2: #2c7a7b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      min-height: 100vh;
+      font-family: "Avenir Next Rounded", "Futura", "Trebuchet MS", "Arial Rounded MT Bold", sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 10% 10%, #ffe7c6 0%, rgba(255, 231, 198, 0) 50%),
+        radial-gradient(circle at 90% 20%, #d8f1ff 0%, rgba(216, 241, 255, 0) 55%),
+        linear-gradient(135deg, #fffaf3 0%, #f6efe7 100%);
+      padding: 32px 20px;
+    }
+
+    .page {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 28px;
+      align-items: start;
+    }
+
+    header {
+      grid-column: 1 / -1;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    h1 {
+      font-size: 32px;
+      letter-spacing: 1px;
+      margin-bottom: 8px;
+    }
+
+    p.subtitle {
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .panel {
+      background: var(--cream);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 18px 50px rgba(36, 25, 15, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+    }
+
+    .panel h2 {
+      font-size: 18px;
+      margin-bottom: 16px;
+      color: var(--accent-2);
+    }
+
+    .group {
+      margin-bottom: 16px;
+    }
+
+    label {
+      display: block;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 6px;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    input[type="color"] {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #e6d7c7;
+      background: #fff;
+      font-size: 14px;
+      color: var(--ink);
+    }
+
+    .row {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+
+    .row-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .inline {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .preview {
+      display: grid;
+      place-items: center;
+      min-height: 320px;
+      border-radius: 18px;
+      background: #fff;
+      border: 1px dashed #e0d2c3;
+    }
+
+    .preview img {
+      width: 256px;
+      height: 256px;
+    }
+
+    .link-box {
+      margin-top: 16px;
+    }
+
+    .link-box input {
+      font-family: "Courier New", monospace;
+      font-size: 12px;
+    }
+
+    button {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: none;
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px rgba(255, 155, 51, 0.3);
+    }
+
+    .format-toggle {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 8px;
+    }
+
+    @media (max-width: 900px) {
+      .page {
+        grid-template-columns: 1fr;
+      }
+
+      .preview img {
+        width: 220px;
+        height: 220px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <h1>PYQ SVG 生成器</h1>
+      <p class="subtitle">自定义参数，实时预览并生成链接</p>
+    </header>
+
+    <section class="panel">
+      <h2>参数设置</h2>
+      <div class="group row">
+        <div>
+          <label for="text">文字</label>
+          <input id="text" type="text" value="PYQ" maxlength="12">
+        </div>
+        <div>
+          <label for="font">字体</label>
+          <input id="font" type="text" value="Arial Rounded MT Bold, Helvetica Rounded, Arial, sans-serif">
+        </div>
+      </div>
+
+      <div class="group row-3">
+        <div>
+          <label for="size">尺寸</label>
+          <input id="size" type="number" value="256" min="64" max="1024">
+        </div>
+        <div>
+          <label for="textSize">文字大小</label>
+          <input id="textSize" type="number" value="64" min="10" max="256">
+        </div>
+        <div>
+          <label for="textColor">文字颜色</label>
+          <input id="textColor" type="color" value="#ffffff">
+        </div>
+      </div>
+
+      <div class="group row-3">
+        <div>
+          <label for="ringWidth">圆环宽度</label>
+          <input id="ringWidth" type="number" value="18" min="2" max="128">
+        </div>
+        <div>
+          <label for="ringPadding">圆环内边距</label>
+          <input id="ringPadding" type="number" value="8" min="0" max="128">
+        </div>
+        <div class="inline">
+          <input id="useBackground" type="checkbox">
+          <label for="useBackground" style="margin: 0; text-transform: none;">背景色</label>
+          <input id="background" type="color" value="#ffffff">
+        </div>
+      </div>
+
+      <div class="group">
+        <label for="gradient">渐变颜色</label>
+        <input id="gradient" type="text" value="#ff3b30,#ff9500,#ffcc00,#34c759,#007aff,#af52de">
+        <div class="hint">逗号分隔，至少两个颜色；支持 hex 或 rgba。</div>
+      </div>
+
+      <div class="group row">
+        <div>
+          <label for="gradientAngle">渐变角度</label>
+          <input id="gradientAngle" type="number" value="45" min="0" max="360">
+        </div>
+        <div>
+          <label for="gradientDirection">渐变方向</label>
+          <input id="gradientDirection" type="text" placeholder="horizontal / vertical / diagonal / diagonal2">
+        </div>
+      </div>
+
+      <div class="group row-3">
+        <div class="inline">
+          <input id="useGlow" type="checkbox" checked>
+          <label for="useGlow" style="margin: 0; text-transform: none;">发光</label>
+        </div>
+        <div>
+          <label for="glowColor">发光颜色</label>
+          <input id="glowColor" type="text" value="rgba(255,255,255,0.7)">
+        </div>
+        <div>
+          <label for="glowBlur">发光模糊</label>
+          <input id="glowBlur" type="number" value="6" min="0" max="64">
+        </div>
+      </div>
+
+      <div class="group row-3">
+        <div>
+          <label for="glowOpacity">发光透明度</label>
+          <input id="glowOpacity" type="number" value="0.7" min="0" max="1" step="0.05">
+        </div>
+        <div>
+          <label for="shadowTarget">阴影目标</label>
+          <input id="shadowTarget" type="text" placeholder="none / ring / text / both">
+        </div>
+        <div>
+          <label for="shadowColor">阴影颜色</label>
+          <input id="shadowColor" type="text" value="rgba(0,0,0,0.25)">
+        </div>
+      </div>
+
+      <div class="group row-3">
+        <div>
+          <label for="shadowDx">阴影 X 偏移</label>
+          <input id="shadowDx" type="number" value="0" min="-50" max="50">
+        </div>
+        <div>
+          <label for="shadowDy">阴影 Y 偏移</label>
+          <input id="shadowDy" type="number" value="6" min="-50" max="50">
+        </div>
+        <div>
+          <label for="shadowBlur">阴影模糊</label>
+          <input id="shadowBlur" type="number" value="8" min="0" max="64">
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>预览</h2>
+      <div class="preview">
+        <img id="previewImage" alt="PYQ 预览">
+      </div>
+      <div class="format-toggle">
+        <label for="format">导出格式</label>
+        <input id="format" type="text" value="svg" placeholder="svg 或 png">
+      </div>
+      <div class="hint">PNG 导出需要安装 sharp 依赖。</div>
+      <div class="link-box">
+        <label for="url">图片链接</label>
+        <input id="url" type="text" readonly>
+        <button id="copyBtn" type="button">复制链接</button>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const inputs = [
+      'text',
+      'font',
+      'size',
+      'textSize',
+      'textColor',
+      'ringWidth',
+      'ringPadding',
+      'gradient',
+      'gradientAngle',
+      'gradientDirection',
+      'useGlow',
+      'glowColor',
+      'glowBlur',
+      'glowOpacity',
+      'shadowTarget',
+      'shadowColor',
+      'shadowDx',
+      'shadowDy',
+      'shadowBlur',
+      'format',
+      'useBackground',
+      'background'
+    ];
+
+    const previewImage = document.getElementById('previewImage');
+    const urlInput = document.getElementById('url');
+    const copyBtn = document.getElementById('copyBtn');
+
+    function buildUrl() {
+      const params = new URLSearchParams();
+      const text = document.getElementById('text').value.trim() || 'PYQ';
+      const font = document.getElementById('font').value.trim();
+      const size = document.getElementById('size').value;
+      const textSize = document.getElementById('textSize').value;
+      const textColor = document.getElementById('textColor').value;
+      const ringWidth = document.getElementById('ringWidth').value;
+      const ringPadding = document.getElementById('ringPadding').value;
+      const gradient = document.getElementById('gradient').value.trim();
+      const gradientAngle = document.getElementById('gradientAngle').value;
+      const gradientDirection = document.getElementById('gradientDirection').value.trim();
+      const useGlow = document.getElementById('useGlow').checked;
+      const glowColor = document.getElementById('glowColor').value.trim();
+      const glowBlur = document.getElementById('glowBlur').value;
+      const glowOpacity = document.getElementById('glowOpacity').value;
+      const shadowTarget = document.getElementById('shadowTarget').value.trim();
+      const shadowColor = document.getElementById('shadowColor').value.trim();
+      const shadowDx = document.getElementById('shadowDx').value;
+      const shadowDy = document.getElementById('shadowDy').value;
+      const shadowBlur = document.getElementById('shadowBlur').value;
+      const format = document.getElementById('format').value.trim().toLowerCase() || 'svg';
+      const useBackground = document.getElementById('useBackground').checked;
+      const background = document.getElementById('background').value;
+
+      params.set('text', text);
+      if (font) params.set('font', font);
+      params.set('size', size);
+      params.set('textSize', textSize);
+      params.set('textColor', textColor);
+      params.set('ringWidth', ringWidth);
+      params.set('ringPadding', ringPadding);
+      if (gradient) params.set('gradient', gradient);
+      params.set('gradientAngle', gradientAngle);
+      if (gradientDirection) params.set('gradientDirection', gradientDirection);
+      if (useGlow) params.set('glow', '1');
+      if (glowColor) params.set('glowColor', glowColor);
+      params.set('glowBlur', glowBlur);
+      params.set('glowOpacity', glowOpacity);
+      if (shadowTarget) params.set('shadow', shadowTarget);
+      if (shadowColor) params.set('shadowColor', shadowColor);
+      params.set('shadowDx', shadowDx);
+      params.set('shadowDy', shadowDy);
+      params.set('shadowBlur', shadowBlur);
+      if (useBackground) params.set('background', background);
+
+      const endpoint = format === 'png' ? 'svgsc.png' : 'svgsc';
+      const baseUrl = `${window.location.origin}/${endpoint}`;
+      return `${baseUrl}?${params.toString()}`;
+    }
+
+    function updatePreview() {
+      const url = buildUrl();
+      previewImage.src = url;
+      urlInput.value = url;
+    }
+
+    inputs.forEach((id) => {
+      document.getElementById(id).addEventListener('input', updatePreview);
+      document.getElementById(id).addEventListener('change', updatePreview);
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      try {
+        await navigator.clipboard.writeText(urlInput.value);
+        copyBtn.textContent = '已复制';
+        setTimeout(() => {
+          copyBtn.textContent = '复制链接';
+        }, 1500);
+      } catch (error) {
+        alert('复制失败，请手动复制');
+      }
+    });
+
+    updatePreview();
+  </script>
+</body>
+</html>

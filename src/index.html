@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VPS 剩余价值计算器</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Helvetica', 'Arial', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 600px;
+      width: 100%;
+      padding: 40px;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 28px;
+      text-align: center;
+    }
+
+    .subtitle {
+      color: #666;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    input[type="number"],
+    input[type="date"],
+    select {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: border-color 0.3s;
+    }
+
+    input[type="number"]:focus,
+    input[type="date"]:focus,
+    select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .cycle-options {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .cycle-option {
+      position: relative;
+    }
+
+    .cycle-option input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+    }
+
+    .cycle-option label {
+      display: block;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin: 0;
+    }
+
+    .cycle-option input[type="radio"]:checked + label {
+      border-color: #667eea;
+      background: #f0f4ff;
+      color: #667eea;
+      font-weight: 600;
+    }
+
+    button {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .result {
+      margin-top: 30px;
+      padding: 24px;
+      background: #f8f9fa;
+      border-radius: 12px;
+      display: none;
+    }
+
+    .result.show {
+      display: block;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .result-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .result-item:last-child {
+      border-bottom: none;
+    }
+
+    .result-label {
+      color: #666;
+      font-size: 14px;
+    }
+
+    .result-value {
+      color: #333;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .result-value.highlight {
+      color: #667eea;
+      font-size: 24px;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 24px;
+      background: #e0e0e0;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      transition: width 0.5s ease-out;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .error {
+      background: #fee;
+      color: #c33;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 10px;
+      display: none;
+      font-size: 14px;
+    }
+
+    .error.show {
+      display: block;
+    }
+
+    .share-section {
+      margin-top: 20px;
+      padding: 20px;
+      background: #f0f4ff;
+      border-radius: 12px;
+      display: none;
+    }
+
+    .share-section.show {
+      display: block;
+      animation: slideIn 0.3s ease-out;
+    }
+
+    .share-btn {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s;
+      margin-top: 10px;
+    }
+
+    .share-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .badge-preview {
+      margin-top: 15px;
+      text-align: center;
+    }
+
+    .badge-preview img {
+      max-width: 100%;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .share-link {
+      margin-top: 15px;
+    }
+
+    .share-link label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 13px;
+      color: #666;
+    }
+
+    .share-link input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: monospace;
+      background: white;
+    }
+
+    .share-link input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+
+    .copy-btn {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      background: white;
+      color: #667eea;
+      border: 2px solid #667eea;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .copy-btn:hover {
+      background: #667eea;
+      color: white;
+    }
+
+    .copy-btn.copied {
+      background: #44cc11;
+      border-color: #44cc11;
+      color: white;
+    }
+
+    .currency-converter {
+      margin-top: 15px;
+      padding: 15px;
+      background: white;
+      border-radius: 8px;
+      display: none;
+    }
+
+    .currency-converter.show {
+      display: block;
+    }
+
+    .currency-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .currency-row select {
+      flex: 1;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    .currency-value {
+      flex: 2;
+      padding: 8px;
+      background: #f8f9fa;
+      border-radius: 6px;
+      font-weight: 600;
+      color: #333;
+      text-align: right;
+    }
+
+    .exchange-rate-badge {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: white;
+      padding: 12px 16px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      font-size: 12px;
+      z-index: 1000;
+      min-width: 200px;
+      display: none;
+    }
+
+    .exchange-rate-badge.show {
+      display: block;
+      animation: slideInRight 0.3s ease-out;
+    }
+
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .exchange-rate-badge .title {
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .exchange-rate-badge .loading {
+      color: #999;
+      font-size: 11px;
+    }
+
+    .exchange-rate-badge .rate-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      color: #666;
+    }
+
+    .exchange-rate-badge .rate-value {
+      font-weight: 600;
+      color: #667eea;
+    }
+
+    .exchange-rate-badge .cache-warning {
+      margin-top: 8px;
+      padding: 6px 8px;
+      background: #fff3cd;
+      border-left: 3px solid #ffc107;
+      border-radius: 4px;
+      font-size: 10px;
+      color: #856404;
+      display: none;
+    }
+
+    .exchange-rate-badge .cache-warning.show {
+      display: block;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 24px;
+      }
+
+      h1 {
+        font-size: 24px;
+      }
+
+      .cycle-options {
+        grid-template-columns: 1fr;
+      }
+
+      .exchange-rate-badge {
+        top: 10px;
+        right: 10px;
+        font-size: 11px;
+        padding: 10px 12px;
+        min-width: 160px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- 右上角汇率显示 -->
+  <div id="exchangeRateBadge" class="exchange-rate-badge">
+    <div class="title">💱 实时汇率</div>
+    <div id="rateContent" class="loading">获取中...</div>
+    <div id="cacheWarning" class="cache-warning">
+      ⚠️ 使用缓存数据
+    </div>
+  </div>
+
+  <div class="container">
+    <h1>💰 VPS 剩余价值计算器</h1>
+    <p class="subtitle">计算您的 VPS 当前剩余价值</p>
+
+    <form id="calculatorForm">
+      <div class="form-group">
+        <label for="totalCost">购买价格</label>
+        <input type="number" id="totalCost" name="totalCost" step="0.01" min="0" required placeholder="例如：365">
+      </div>
+
+      <div class="form-group">
+        <label for="currency">货币单位</label>
+        <select id="currency" name="currency" required>
+          <option value="CNY" selected>人民币 (¥)</option>
+          <option value="USD">美元 ($)</option>
+          <option value="EUR">欧元 (€)</option>
+          <option value="GBP">英镑 (£)</option>
+          <option value="JPY">日元 (¥)</option>
+          <option value="KRW">韩元 (₩)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="purchaseDate">购买日期</label>
+        <input type="date" id="purchaseDate" name="purchaseDate" required>
+      </div>
+
+      <div class="form-group">
+        <label>付款周期</label>
+        <div class="cycle-options">
+          <div class="cycle-option">
+            <input type="radio" id="monthly" name="cycle" value="monthly" required>
+            <label for="monthly">月付（30天）</label>
+          </div>
+          <div class="cycle-option">
+            <input type="radio" id="yearly" name="cycle" value="yearly" checked>
+            <label for="yearly">年付（365天）</label>
+          </div>
+          <div class="cycle-option">
+            <input type="radio" id="biennial" name="cycle" value="biennial">
+            <label for="biennial">两年付（730天）</label>
+          </div>
+          <div class="cycle-option">
+            <input type="radio" id="triennial" name="cycle" value="triennial">
+            <label for="triennial">三年付（1095天）</label>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit">🧮 计算剩余价值</button>
+    </form>
+
+    <div id="error" class="error"></div>
+
+    <div id="result" class="result">
+      <div class="result-item">
+        <span class="result-label">剩余价值</span>
+        <span class="result-value highlight">¥<span id="remainingValue">0</span></span>
+      </div>
+      <div class="result-item" id="cnyEquivalent" style="display: none;">
+        <span class="result-label">人民币等值</span>
+        <span class="result-value" style="color: #667eea;">≈ ¥<span id="cnyRemainingValue">0</span></span>
+      </div>
+      <div class="result-item">
+        <span class="result-label">已使用价值</span>
+        <span class="result-value">¥<span id="usedValue">0</span></span>
+      </div>
+      <div class="result-item">
+        <span class="result-label">剩余天数</span>
+        <span class="result-value"><span id="remainingDays">0</span> 天</span>
+      </div>
+      <div class="result-item">
+        <span class="result-label">已使用天数</span>
+        <span class="result-value"><span id="usedDays">0</span> 天</span>
+      </div>
+      <div class="result-item">
+        <span class="result-label">每日成本</span>
+        <span class="result-value">¥<span id="dailyRate">0</span></span>
+      </div>
+      <div class="result-item">
+        <span class="result-label">使用进度</span>
+        <div class="progress-bar">
+          <div id="progressFill" class="progress-fill" style="width: 0%">0%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 货币转换区域 -->
+    <div id="currencyConverter" class="currency-converter">
+      <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #333;">💱 货币转换</h3>
+      <div class="currency-row">
+        <select id="targetCurrency">
+          <option value="CNY" selected>人民币 (¥)</option>
+          <option value="USD">美元 ($)</option>
+          <option value="EUR">欧元 (€)</option>
+          <option value="GBP">英镑 (£)</option>
+          <option value="JPY">日元 (¥)</option>
+          <option value="KRW">韩元 (₩)</option>
+        </select>
+        <div class="currency-value" id="convertedValue">--</div>
+      </div>
+      <p style="margin: 10px 0 0 0; font-size: 12px; color: #999;">实时汇率自动计算</p>
+    </div>
+
+    <!-- 分享区域 -->
+    <div id="shareSection" class="share-section">
+      <h3 style="margin: 0 0 15px 0; font-size: 16px; color: #333;">🔗 分享徽章</h3>
+
+      <div class="form-group" style="margin-bottom: 15px;">
+        <label for="sourceUrl" style="font-size: 13px; color: #666;">出处网址（显示在徽章底部）：</label>
+        <input type="text" id="sourceUrl" value="localhost:3000" placeholder="例如：yoursite.com" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 6px; font-size: 13px;">
+      </div>
+
+      <div class="badge-preview">
+        <img id="badgePreview" src="" alt="VPS 徽章预览">
+      </div>
+
+      <div class="share-link">
+        <label>图片链接（可嵌入 README）：</label>
+        <input type="text" id="badgeUrl" readonly>
+        <button class="copy-btn" id="copyBtn">📋 复制链接</button>
+      </div>
+
+      <div class="share-link" style="margin-top: 15px;">
+        <label>Markdown 代码：</label>
+        <input type="text" id="markdownCode" readonly>
+        <button class="copy-btn" id="copyMarkdownBtn">📋 复制 Markdown</button>
+      </div>
+
+      <button class="share-btn" id="shareBtn">🔄 生成分享链接</button>
+    </div>
+  </div>
+
+  <script>
+    // 获取表单元素
+    const form = document.getElementById('calculatorForm');
+    const resultDiv = document.getElementById('result');
+    const errorDiv = document.getElementById('error');
+    const currencyConverterDiv = document.getElementById('currencyConverter');
+    const shareSectionDiv = document.getElementById('shareSection');
+    const exchangeRateBadgeDiv = document.getElementById('exchangeRateBadge');
+    const rateContentDiv = document.getElementById('rateContent');
+
+    // 全局变量存储当前计算结果
+    let currentData = null;
+    let currentCurrency = 'CNY';
+    let convertedData = null; // 存储转换后的数据（用于 SVG）
+
+    // 货币符号映射
+    const currencySymbols = {
+      'CNY': '¥',
+      'USD': '$',
+      'EUR': '€',
+      'GBP': '£',
+      'JPY': '¥',
+      'KRW': '₩'
+    };
+
+    // 页面加载时获取汇率
+    async function fetchExchangeRates() {
+      exchangeRateBadgeDiv.classList.add('show');
+      rateContentDiv.innerHTML = '<div class="loading">获取中...</div>';
+
+      try {
+        // 获取四种货币到 CNY 的汇率：美元、日元、欧元、韩元
+        const [usdResponse, jpyResponse, eurResponse, krwResponse] = await Promise.all([
+          fetch('/api/exchange-rate?from=USD&to=CNY'),
+          fetch('/api/exchange-rate?from=JPY&to=CNY'),
+          fetch('/api/exchange-rate?from=EUR&to=CNY'),
+          fetch('/api/exchange-rate?from=KRW&to=CNY')
+        ]);
+
+        const usdData = await usdResponse.json();
+        const jpyData = await jpyResponse.json();
+        const eurData = await eurResponse.json();
+        const krwData = await krwResponse.json();
+
+        if (usdData.success && jpyData.success && eurData.success && krwData.success) {
+          // 检查是否有任何一个使用了降级缓存
+          const usingCache = usdData.data.fromCache || jpyData.data.fromCache ||
+                             eurData.data.fromCache || krwData.data.fromCache;
+
+          rateContentDiv.innerHTML = `
+            <div class="rate-item">
+              <span>🇺🇸 USD</span>
+              <span class="rate-value">¥${usdData.data.rate}</span>
+            </div>
+            <div class="rate-item">
+              <span>🇯🇵 JPY</span>
+              <span class="rate-value">¥${jpyData.data.rate}</span>
+            </div>
+            <div class="rate-item">
+              <span>🇪🇺 EUR</span>
+              <span class="rate-value">¥${eurData.data.rate}</span>
+            </div>
+            <div class="rate-item">
+              <span>🇰🇷 KRW</span>
+              <span class="rate-value">¥${krwData.data.rate}</span>
+            </div>
+          `;
+
+          // 如果使用了降级缓存，显示警告
+          const cacheWarningDiv = document.getElementById('cacheWarning');
+          if (usingCache) {
+            cacheWarningDiv.classList.add('show');
+          } else {
+            cacheWarningDiv.classList.remove('show');
+          }
+        } else {
+          throw new Error('获取汇率失败');
+        }
+      } catch (error) {
+        rateContentDiv.innerHTML = '<div class="loading" style="color: #e05d44;">获取失败</div>';
+        console.error('汇率获取错误:', error);
+      }
+    }
+
+    // 页面加载时获取汇率
+    fetchExchangeRates();
+
+    // 设置默认日期为今天
+    const today = new Date().toISOString().split('T')[0];
+    document.getElementById('purchaseDate').max = today;
+
+    // 设置默认出处网址为当前域名
+    document.getElementById('sourceUrl').value = window.location.host;
+
+    // 表单提交处理
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      // 隐藏错误和结果
+      errorDiv.classList.remove('show');
+      resultDiv.classList.remove('show');
+      currencyConverterDiv.classList.remove('show');
+      shareSectionDiv.classList.remove('show');
+
+      // 获取表单数据
+      currentCurrency = document.getElementById('currency').value;
+      const formData = {
+        totalCost: parseFloat(document.getElementById('totalCost').value),
+        cycle: document.querySelector('input[name="cycle"]:checked').value,
+        purchaseDate: document.getElementById('purchaseDate').value
+      };
+
+      try {
+        // 调用 API
+        const response = await fetch('/api/calculate-by-cycle', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(formData)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+          throw new Error(data.error || '计算失败');
+        }
+
+        // 保存结果
+        currentData = data.data;
+        currentData.currency = currentCurrency;
+
+        // 显示结果
+        displayResult(currentData);
+
+        // 显示货币转换和分享区域
+        currencyConverterDiv.classList.add('show');
+        shareSectionDiv.classList.add('show');
+
+        // 自动进行货币转换
+        updateCurrencyConversion();
+
+        // 自动生成分享链接
+        generateShareLink();
+      } catch (error) {
+        showError(error.message);
+      }
+    });
+
+    // 显示结果
+    async function displayResult(data) {
+      const symbol = currencySymbols[currentCurrency];
+
+      document.getElementById('remainingValue').textContent = data.remainingValue.toFixed(2);
+      document.getElementById('usedValue').textContent = data.usedValue.toFixed(2);
+      document.getElementById('remainingDays').textContent = data.remainingDays;
+      document.getElementById('usedDays').textContent = data.usedDays;
+      document.getElementById('dailyRate').textContent = data.dailyRate.toFixed(2);
+
+      // 更新货币符号显示
+      document.querySelectorAll('.result-value').forEach(el => {
+        if (el.innerHTML.includes('¥') || el.innerHTML.includes('$') ||
+            el.innerHTML.includes('€') || el.innerHTML.includes('£') || el.innerHTML.includes('₩')) {
+          const value = el.querySelector('span');
+          if (value && value.id !== 'cnyRemainingValue') {
+            el.innerHTML = symbol + value.outerHTML;
+          }
+        }
+      });
+
+      // 如果选择的货币不是人民币，自动计算并显示人民币等值
+      const cnyEquivalentDiv = document.getElementById('cnyEquivalent');
+      if (currentCurrency !== 'CNY') {
+        try {
+          const response = await fetch(`/api/exchange-rate?from=${currentCurrency}&to=CNY`);
+          const exchangeData = await response.json();
+
+          if (exchangeData.success) {
+            const cnyValue = data.remainingValue * exchangeData.data.rate;
+            document.getElementById('cnyRemainingValue').textContent = cnyValue.toFixed(2);
+            cnyEquivalentDiv.style.display = 'flex';
+          } else {
+            cnyEquivalentDiv.style.display = 'none';
+          }
+        } catch (error) {
+          console.error('获取人民币汇率失败:', error);
+          cnyEquivalentDiv.style.display = 'none';
+        }
+      } else {
+        cnyEquivalentDiv.style.display = 'none';
+      }
+
+      const progressFill = document.getElementById('progressFill');
+      const usageRate = data.usageRate.toFixed(1);
+      progressFill.style.width = usageRate + '%';
+      progressFill.textContent = usageRate + '%';
+
+      resultDiv.classList.add('show');
+    }
+
+    // 货币转换
+    async function updateCurrencyConversion() {
+      if (!currentData) return;
+
+      const targetCurrency = document.getElementById('targetCurrency').value;
+      const convertedValueEl = document.getElementById('convertedValue');
+
+      // 如果目标货币与原货币相同
+      if (targetCurrency === currentCurrency) {
+        const symbol = currencySymbols[targetCurrency];
+        convertedValueEl.textContent = symbol + currentData.remainingValue.toFixed(2);
+
+        // 重置为原始数据
+        convertedData = null;
+        generateShareLink();
+        return;
+      }
+
+      try {
+        // 调用汇率 API
+        const response = await fetch(`/api/exchange-rate?from=${currentCurrency}&to=${targetCurrency}`);
+        const data = await response.json();
+
+        if (!data.success) {
+          throw new Error(data.error);
+        }
+
+        // 计算转换后的价值
+        const convertedValue = currentData.remainingValue * data.data.rate;
+        const convertedTotalCost = parseFloat(document.getElementById('totalCost').value) * data.data.rate;
+        const symbol = currencySymbols[targetCurrency];
+        convertedValueEl.textContent = symbol + convertedValue.toFixed(2);
+
+        // 保存转换后的数据用于生成 SVG
+        convertedData = {
+          currency: targetCurrency,
+          remainingValue: convertedValue,
+          totalCost: convertedTotalCost,
+          rate: data.data.rate
+        };
+
+        // 自动更新 SVG
+        generateShareLink();
+      } catch (error) {
+        convertedValueEl.textContent = '转换失败';
+        console.error('汇率转换错误:', error);
+      }
+    }
+
+    // 生成分享链接
+    function generateShareLink() {
+      if (!currentData) return;
+
+      // 使用转换后的数据或原始数据
+      const useCurrency = convertedData ? convertedData.currency : currentCurrency;
+      const useRemainingValue = convertedData ? convertedData.remainingValue : currentData.remainingValue;
+      const useTotalCost = convertedData ? convertedData.totalCost : parseFloat(document.getElementById('totalCost').value);
+
+      // 计算结束日期
+      const startDate = new Date(currentData.purchaseDate);
+      const endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + currentData.totalDays);
+
+      // 获取出处网址
+      const sourceUrl = document.getElementById('sourceUrl').value.trim();
+
+      const params = new URLSearchParams({
+        startDate: currentData.purchaseDate,
+        endDate: endDate.toISOString().split('T')[0],
+        currency: useCurrency,
+        remainingValue: useRemainingValue.toFixed(2),
+        totalCost: useTotalCost.toFixed(2),
+        totalDays: currentData.totalDays
+      });
+
+      // 如果有出处网址，添加到参数中
+      if (sourceUrl) {
+        params.append('source', sourceUrl);
+      }
+
+      // 生成完整 URL
+      const baseUrl = window.location.origin;
+      const badgeUrl = `${baseUrl}/api/badge.svg?${params.toString()}`;
+
+      // 更新预览图片
+      document.getElementById('badgePreview').src = badgeUrl;
+
+      // 更新链接
+      document.getElementById('badgeUrl').value = badgeUrl;
+
+      // 更新 Markdown 代码
+      document.getElementById('markdownCode').value = `![VPS 剩余价值](${badgeUrl})`;
+    }
+
+    // 目标货币变化监听
+    document.getElementById('targetCurrency').addEventListener('change', updateCurrencyConversion);
+
+    // 出处网址变化监听
+    document.getElementById('sourceUrl').addEventListener('input', generateShareLink);
+
+    // 分享按钮点击
+    document.getElementById('shareBtn').addEventListener('click', generateShareLink);
+
+    // 复制按钮
+    document.getElementById('copyBtn').addEventListener('click', async () => {
+      const input = document.getElementById('badgeUrl');
+      const btn = document.getElementById('copyBtn');
+
+      try {
+        await navigator.clipboard.writeText(input.value);
+        btn.textContent = '✅ 已复制';
+        btn.classList.add('copied');
+
+        setTimeout(() => {
+          btn.textContent = '📋 复制链接';
+          btn.classList.remove('copied');
+        }, 2000);
+      } catch (error) {
+        alert('复制失败，请手动复制');
+      }
+    });
+
+    document.getElementById('copyMarkdownBtn').addEventListener('click', async () => {
+      const input = document.getElementById('markdownCode');
+      const btn = document.getElementById('copyMarkdownBtn');
+
+      try {
+        await navigator.clipboard.writeText(input.value);
+        btn.textContent = '✅ 已复制';
+        btn.classList.add('copied');
+
+        setTimeout(() => {
+          btn.textContent = '📋 复制 Markdown';
+          btn.classList.remove('copied');
+        }, 2000);
+      } catch (error) {
+        alert('复制失败，请手动复制');
+      }
+    });
+
+    // 显示错误
+    function showError(message) {
+      errorDiv.textContent = '❌ ' + message;
+      errorDiv.classList.add('show');
+    }
+
+    // 输入验证
+    document.getElementById('totalCost').addEventListener('input', (e) => {
+      if (e.target.value < 0) {
+        e.target.value = 0;
+      }
+    });
+
+    document.getElementById('purchaseDate').addEventListener('change', (e) => {
+      const selected = new Date(e.target.value);
+      const now = new Date(today);
+
+      if (selected > now) {
+        showError('购买日期不能晚于当前日期');
+        e.target.value = today;
+      }
+    });
+  </script>
+</body>
+</html>

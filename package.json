@@ -1,0 +1,45 @@
+{
+  "name": "vps-value-calculator",
+  "version": "1.0.0",
+  "description": "VPS 剩余价值计算工具 - 支持月付/年付/两年付/三年付的价值计算",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "jest --coverage",
+    "test:watch": "jest --watch"
+  },
+  "keywords": [
+    "vps",
+    "calculator",
+    "value",
+    "api"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "qrcode": "^1.5.4",
+    "sharp": "^0.33.4"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^6.3.3"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coverageDirectory": "coverage",
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/server.js"
+    ],
+    "coverageThreshold": {
+      "global": {
+        "statements": 90,
+        "branches": 85,
+        "functions": 100,
+        "lines": 90
+      }
+    }
+  }
+}
